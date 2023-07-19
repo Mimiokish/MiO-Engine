@@ -1,0 +1,37 @@
+{
+    "name": "mio-engine",
+    "version": "0.1.0",
+    "description": "",
+    "scripts": {
+        "doc": "jsdoc",
+        "serve": "rollup -w -c rollup.dev.config.js",
+        "build": "rollup -c rollup.build.config.js"
+    },
+    "author": "Business.Jiahe.Lin@gmail.com",
+    "license": "MIT",
+    "type": "module",
+    "keywords": [
+        "mio",
+        "mio-engine",
+        "3d",
+        "webgl",
+        "webgpu"
+    ],
+    "devDependencies": {
+        "@babel/core": "^7.22.5",
+        "@babel/preset-env": "^7.22.5",
+        "@rollup/plugin-babel": "^6.0.3",
+        "@rollup/plugin-eslint": "^9.0.4",
+        "@rollup/plugin-html": "^1.0.2",
+        "@rollup/plugin-terser": "^0.4.3",
+        "@rollup/plugin-typescript": "^11.1.1",
+        "@typescript-eslint/eslint-plugin": "^5.59.11",
+        "@typescript-eslint/parser": "^5.59.11",
+        "eslint": "^8.42.0",
+        "jsdoc": "^4.0.2",
+        "rollup": "^3.25.1",
+        "rollup-plugin-serve": "^2.0.2",
+        "tslib": "^2.5.3",
+        "typescript": "^5.1.3"
+    }
+}
