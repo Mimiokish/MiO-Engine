@@ -7,7 +7,7 @@ export default {
     input: 'src/index.ts',
     output: {
         name: 'MiO-Engine',
-        file: 'dist/mio-engine.js',
+        file: 'public/mio-engine.js',
         format: 'es',
         sourcemap: true
     },
@@ -27,7 +27,7 @@ export default {
             babelHelpers: 'bundled'
         }),
         plugin_serve({
-            contentBase: '/dist'
+            contentBase: './public'
         })
     ]
 }
