@@ -1,7 +1,7 @@
-import { EventDispatcher } from './event';
+import { Object3D } from "./core";
 
-const event = new EventDispatcher();
+const object = new Object3D();
 
-console.log(111, event);
+console.log(111, object);
 
-console.log('MiO-Engine | Enjoy Coding!');
+console.log("MiO-Engine | Enjoy Coding!");

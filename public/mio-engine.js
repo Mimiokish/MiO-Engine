@@ -2,24 +2,23 @@
  * @description event dispatcher
  */
 class EventDispatcher {
-    static _instance;
-    _eventMap;
-    _eventMapCustom;
+    #eventMap;
+    #eventMapCustom;
     constructor() {
-        this._eventMap = new Map();
-        this._eventMapCustom = new Map();
+        this.#eventMap = new Map();
+        this.#eventMapCustom = new Map();
     }
     get eventMap() {
-        return this._eventMap;
+        return this.#eventMap;
     }
     set eventMap(value) {
-        throw new Error('eventMap is readonly');
+        throw new Error("eventMap is readonly");
     }
     get eventMapCustom() {
-        return this._eventMapCustom;
+        return this.#eventMapCustom;
     }
     set eventMapCustom(value) {
-        throw new Error('eventMapCustom is readonly');
+        throw new Error("eventMapCustom is readonly");
     }
     /**
      * @description register an event
@@ -29,12 +28,12 @@ class EventDispatcher {
      */
     registerEvent(eventName, callback, self) {
         if (!eventName || !callback || !self) {
-            throw new Error('MiO Engine | Invalid arguments');
+            throw new Error("MiO Engine | Invalid arguments");
         }
-        if (!this._eventMap.has(eventName)) {
-            this._eventMap.set(eventName, []);
+        if (!this.#eventMap.has(eventName)) {
+            this.#eventMap.set(eventName, []);
         }
-        const eventList = this._eventMap.get(eventName);
+        const eventList = this.#eventMap.get(eventName);
         if (eventList) {
             eventList.push({ callback, self });
         }
@@ -47,12 +46,12 @@ class EventDispatcher {
      */
     registerCustomEvent(eventName, callback, self) {
         if (!eventName || !callback || !self) {
-            throw new Error('MiO Engine | Invalid arguments');
+            throw new Error("MiO Engine | Invalid arguments");
         }
-        if (!this._eventMapCustom.has(eventName)) {
-            this._eventMapCustom.set(eventName, []);
+        if (!this.#eventMapCustom.has(eventName)) {
+            this.#eventMapCustom.set(eventName, []);
         }
-        const eventList = this._eventMapCustom.get(eventName);
+        const eventList = this.#eventMapCustom.get(eventName);
         if (eventList) {
             eventList.push({ callback, self });
         }
@@ -64,9 +63,9 @@ class EventDispatcher {
      * @param {EnumObject} self
      */
     removeEvent(eventName, callback, self) {
-        const eventList = this._eventMap.get(eventName);
+        const eventList = this.#eventMap.get(eventName);
         if (eventList) {
-            this._eventMap.set(eventName, eventList.filter(event => event.callback !== callback || event.self !== self));
+            this.#eventMap.set(eventName, eventList.filter(event => event.callback !== callback || event.self !== self));
         }
     }
     /**
@@ -76,17 +75,17 @@ class EventDispatcher {
      * @param {EnumObject} self
      */
     removeCustomEvent(eventName, callback, self) {
-        const eventListCustom = this._eventMapCustom.get(eventName);
+        const eventListCustom = this.#eventMapCustom.get(eventName);
         if (eventListCustom) {
-            this._eventMapCustom.set(eventName, eventListCustom.filter(eventCustom => eventCustom.callback !== callback || eventCustom.self !== self));
+            this.#eventMapCustom.set(eventName, eventListCustom.filter(eventCustom => eventCustom.callback !== callback || eventCustom.self !== self));
         }
     }
     /**
      * @description remove all event
      */
     removeAllEvent() {
-        this._eventMap.clear();
-        this._eventMapCustom.clear();
+        this.#eventMap.clear();
+        this.#eventMapCustom.clear();
     }
     /**
      * @description dispatch an event
@@ -94,7 +93,7 @@ class EventDispatcher {
      * @param {EnumObject} source
      */
     dispatchEvent(eventName, source) {
-        const eventList = this._eventMap.get(eventName);
+        const eventList = this.#eventMap.get(eventName);
         if (eventList) {
             eventList.forEach(event => {
                 event.callback.call(event.self, source);
@@ -107,7 +106,7 @@ class EventDispatcher {
      * @param {EnumObject} source
      */
     dispatchEventCustom(eventName, source) {
-        const eventListCustom = this._eventMapCustom.get(eventName);
+        const eventListCustom = this.#eventMapCustom.get(eventName);
         if (eventListCustom) {
             eventListCustom.forEach(eventCustom => {
                 eventCustom.callback.call(eventCustom.self, source);
@@ -116,7 +115,14 @@ class EventDispatcher {
     }
 }
 
-const event = new EventDispatcher();
-console.log(111, event);
-console.log('MiO-Engine | Enjoy Coding!');
+class Object3D extends EventDispatcher {
+    constructor() {
+        super();
+        console.log(3434, this.eventMap);
+    }
+}
+
+const object = new Object3D();
+console.log(111, object);
+console.log("MiO-Engine | Enjoy Coding!");
 //# sourceMappingURL=mio-engine.js.map

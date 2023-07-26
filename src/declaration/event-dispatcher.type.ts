@@ -1,4 +1,4 @@
-import { EnumFunction, EnumObject } from './';
+import { EnumFunction, EnumObject } from "./";
 
 export type Event = {
     self: EnumObject

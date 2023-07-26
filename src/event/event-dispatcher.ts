@@ -1,30 +1,29 @@
-import { EnumFunction, EnumObject, Event, EventMap, EventMapCustom, EventTypeDefault } from '../declaration';
+import { EnumFunction, EnumObject, Event, EventMap, EventMapCustom, EventTypeDefault } from "../declaration";
 
 /**
  * @description event dispatcher
  */
 export class EventDispatcher {
-    private static _instance: EventDispatcher;
-    private _eventMap: EventMap;
-    private _eventMapCustom: EventMapCustom;
+    readonly #eventMap: EventMap;
+    readonly #eventMapCustom: EventMapCustom;
 
     constructor() {
-        this._eventMap = new Map();
-        this._eventMapCustom = new Map();
+        this.#eventMap = new Map();
+        this.#eventMapCustom = new Map();
     }
 
     public get eventMap(): EventMap {
-        return this._eventMap;
+        return this.#eventMap;
     }
     public set eventMap(value: EventMap) {
-        throw new Error('eventMap is readonly');
+        throw new Error("eventMap is readonly");
     }
 
     public get eventMapCustom(): EventMapCustom {
-        return this._eventMapCustom;
+        return this.#eventMapCustom;
     }
     public set eventMapCustom(value: EventMapCustom) {
-        throw new Error('eventMapCustom is readonly');
+        throw new Error("eventMapCustom is readonly");
     }
 
     /**
@@ -35,14 +34,14 @@ export class EventDispatcher {
      */
     public registerEvent(eventName: EventTypeDefault, callback: EnumFunction, self: EnumObject): void {
         if (!eventName || !callback || !self) {
-            throw new Error('MiO Engine | Invalid arguments');
+            throw new Error("MiO Engine | Invalid arguments");
         }
 
-        if (!this._eventMap.has(eventName)) {
-            this._eventMap.set(eventName, []);
+        if (!this.#eventMap.has(eventName)) {
+            this.#eventMap.set(eventName, []);
         }
 
-        const eventList: Array<Event> | undefined = this._eventMap.get(eventName);
+        const eventList: Array<Event> | undefined = this.#eventMap.get(eventName);
         if (eventList) {
             eventList.push({ callback, self });
         }
@@ -56,14 +55,14 @@ export class EventDispatcher {
      */
     public registerCustomEvent(eventName: string, callback: EnumFunction, self: EnumObject): void {
         if (!eventName || !callback || !self) {
-            throw new Error('MiO Engine | Invalid arguments');
+            throw new Error("MiO Engine | Invalid arguments");
         }
-    
-        if (!this._eventMapCustom.has(eventName)) {
-            this._eventMapCustom.set(eventName, []);
+
+        if (!this.#eventMapCustom.has(eventName)) {
+            this.#eventMapCustom.set(eventName, []);
         }
-    
-        const eventList: Array<Event> | undefined = this._eventMapCustom.get(eventName);
+
+        const eventList: Array<Event> | undefined = this.#eventMapCustom.get(eventName);
         if (eventList) {
             eventList.push({ callback, self });
         }
@@ -76,9 +75,9 @@ export class EventDispatcher {
      * @param {EnumObject} self
      */
     public removeEvent(eventName: EventTypeDefault, callback: EnumFunction, self: EnumObject): void {
-        const eventList: Array<Event> | undefined = this._eventMap.get(eventName);
+        const eventList: Array<Event> | undefined = this.#eventMap.get(eventName);
         if (eventList) {
-            this._eventMap.set(eventName, eventList.filter(event => event.callback !== callback || event.self !== self));
+            this.#eventMap.set(eventName, eventList.filter(event => event.callback !== callback || event.self !== self));
         }
     }
 
@@ -89,9 +88,9 @@ export class EventDispatcher {
      * @param {EnumObject} self
      */
     public removeCustomEvent(eventName: string, callback: EnumFunction, self: EnumObject): void {
-        const eventListCustom: Array<Event> | undefined = this._eventMapCustom.get(eventName);
+        const eventListCustom: Array<Event> | undefined = this.#eventMapCustom.get(eventName);
         if (eventListCustom) {
-            this._eventMapCustom.set(eventName, eventListCustom.filter(eventCustom => eventCustom.callback !== callback || eventCustom.self !== self));
+            this.#eventMapCustom.set(eventName, eventListCustom.filter(eventCustom => eventCustom.callback !== callback || eventCustom.self !== self));
         }
     }
 
@@ -99,8 +98,8 @@ export class EventDispatcher {
      * @description remove all event
      */
     public removeAllEvent(): void {
-        this._eventMap.clear();
-        this._eventMapCustom.clear();
+        this.#eventMap.clear();
+        this.#eventMapCustom.clear();
     }
 
     /**
@@ -109,21 +108,21 @@ export class EventDispatcher {
      * @param {EnumObject} source
      */
     public dispatchEvent(eventName: EventTypeDefault, source: EnumObject): void {
-        const eventList: Array<Event> | undefined = this._eventMap.get(eventName);
+        const eventList: Array<Event> | undefined = this.#eventMap.get(eventName);
         if (eventList) {
             eventList.forEach(event => {
                 event.callback.call(event.self, source);
             });
         }
     }
-    
+
     /**
      * @description dispatch an event
      * @param {String} eventName
      * @param {EnumObject} source
      */
     public dispatchEventCustom(eventName: string, source: EnumObject): void {
-        const eventListCustom: Array<Event> | undefined = this._eventMapCustom.get(eventName);
+        const eventListCustom: Array<Event> | undefined = this.#eventMapCustom.get(eventName);
         if (eventListCustom) {
             eventListCustom.forEach(eventCustom => {
                 eventCustom.callback.call(eventCustom.self, source);

@@ -18,7 +18,7 @@
     ],
     "rules": {
         "indent": ["error", 4, { "SwitchCase": 1 }],
-        "quotes": ["error", "single"],
+        "quotes": ["error", "double"],
         "semi": ["error", "always"],
         "@typescript-eslint/no-unused-vars": "off",
         "@typescript-eslint/no-empty-function": "off"
