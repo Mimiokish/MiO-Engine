@@ -1,2 +1,2 @@
 export { EnumObject, EnumFunction } from './common.type';
-export { EventMap } from './event-dispatcher.type';
+export { Event, EventMap, EventMapCustom, EventTypeDefault } from './event-dispatcher.type';
