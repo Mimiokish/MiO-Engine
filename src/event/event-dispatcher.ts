@@ -1,4 +1,4 @@
-import { EnumFunction, EnumObject, Event, EventMap, EventMapCustom, EventTypeDefault } from "../declaration";
+import { EnumFunction, EnumObject, Event, EventMap, EventMapCustom, EventType } from "../declaration";
 
 /**
  * @description event dispatcher
@@ -28,20 +28,20 @@ export class EventDispatcher {
 
     /**
      * @description register an event
-     * @param {EventTypeDefault} eventName
+     * @param {EventType} type
      * @param {EnumFunction} callback
      * @param {EnumObject} self
      */
-    public registerEvent(eventName: EventTypeDefault, callback: EnumFunction, self: EnumObject): void {
-        if (!eventName || !callback || !self) {
+    public registerEvent(type: EventType, callback: EnumFunction, self: EnumObject): void {
+        if (!type || !callback || !self) {
             throw new Error("MiO Engine | Invalid arguments");
         }
 
-        if (!this.#eventMap.has(eventName)) {
-            this.#eventMap.set(eventName, []);
+        if (!this.#eventMap.has(type)) {
+            this.#eventMap.set(type, []);
         }
 
-        const eventList: Array<Event> | undefined = this.#eventMap.get(eventName);
+        const eventList: Array<Event> | undefined = this.#eventMap.get(type);
         if (eventList) {
             eventList.push({ callback, self });
         }
@@ -70,14 +70,14 @@ export class EventDispatcher {
 
     /**
      * @description remove an event
-     * @param {EventTypeDefault} eventName
+     * @param {EventType} type
      * @param {EnumFunction} callback
      * @param {EnumObject} self
      */
-    public removeEvent(eventName: EventTypeDefault, callback: EnumFunction, self: EnumObject): void {
-        const eventList: Array<Event> | undefined = this.#eventMap.get(eventName);
+    public removeEvent(type: EventType, callback: EnumFunction, self: EnumObject): void {
+        const eventList: Array<Event> | undefined = this.#eventMap.get(type);
         if (eventList) {
-            this.#eventMap.set(eventName, eventList.filter(event => event.callback !== callback || event.self !== self));
+            this.#eventMap.set(type, eventList.filter(event => event.callback !== callback || event.self !== self));
         }
     }
 
@@ -104,11 +104,11 @@ export class EventDispatcher {
 
     /**
      * @description dispatch an event
-     * @param {EventTypeDefault} eventName
+     * @param {EventType} type
      * @param {EnumObject} source
      */
-    public dispatchEvent(eventName: EventTypeDefault, source: EnumObject): void {
-        const eventList: Array<Event> | undefined = this.#eventMap.get(eventName);
+    public dispatchEvent(type: EventType, source: EnumObject): void {
+        const eventList: Array<Event> | undefined = this.#eventMap.get(type);
         if (eventList) {
             eventList.forEach(event => {
                 event.callback.call(event.self, source);

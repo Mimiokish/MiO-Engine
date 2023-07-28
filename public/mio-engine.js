@@ -22,18 +22,18 @@ class EventDispatcher {
     }
     /**
      * @description register an event
-     * @param {EventTypeDefault} eventName
+     * @param {EventType} type
      * @param {EnumFunction} callback
      * @param {EnumObject} self
      */
-    registerEvent(eventName, callback, self) {
-        if (!eventName || !callback || !self) {
+    registerEvent(type, callback, self) {
+        if (!type || !callback || !self) {
             throw new Error("MiO Engine | Invalid arguments");
         }
-        if (!this.#eventMap.has(eventName)) {
-            this.#eventMap.set(eventName, []);
+        if (!this.#eventMap.has(type)) {
+            this.#eventMap.set(type, []);
         }
-        const eventList = this.#eventMap.get(eventName);
+        const eventList = this.#eventMap.get(type);
         if (eventList) {
             eventList.push({ callback, self });
         }
@@ -58,14 +58,14 @@ class EventDispatcher {
     }
     /**
      * @description remove an event
-     * @param {EventTypeDefault} eventName
+     * @param {EventType} type
      * @param {EnumFunction} callback
      * @param {EnumObject} self
      */
-    removeEvent(eventName, callback, self) {
-        const eventList = this.#eventMap.get(eventName);
+    removeEvent(type, callback, self) {
+        const eventList = this.#eventMap.get(type);
         if (eventList) {
-            this.#eventMap.set(eventName, eventList.filter(event => event.callback !== callback || event.self !== self));
+            this.#eventMap.set(type, eventList.filter(event => event.callback !== callback || event.self !== self));
         }
     }
     /**
@@ -89,11 +89,11 @@ class EventDispatcher {
     }
     /**
      * @description dispatch an event
-     * @param {EventTypeDefault} eventName
+     * @param {EventType} type
      * @param {EnumObject} source
      */
-    dispatchEvent(eventName, source) {
-        const eventList = this.#eventMap.get(eventName);
+    dispatchEvent(type, source) {
+        const eventList = this.#eventMap.get(type);
         if (eventList) {
             eventList.forEach(event => {
                 event.callback.call(event.self, source);
