@@ -1,14 +1,17 @@
 {
     "compilerOptions": {
-        "target": "esnext",
-        "module": "esnext",
+        "target": "ESNext",
+        "module": "ESNext",
         "outDir": "dist",
         "strict": true,
+        "strictPropertyInitialization": false,
         "baseUrl": "./",
         "noImplicitAny": true,
         "esModuleInterop": true,
         "declaration": true,
         "moduleResolution": "node"
     },
-    "include": ["src"]
+    "include": [
+        "src/**/*.ts"
+    ]
 }

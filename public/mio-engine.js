@@ -1,128 +1,161 @@
-/**
- * @description event dispatcher
- */
-class EventDispatcher {
-    #eventMap;
-    #eventMapCustom;
-    constructor() {
-        this.#eventMap = new Map();
-        this.#eventMapCustom = new Map();
+class Renderer {
+}
+
+class DocumentObjectModel {
+    #node;
+    get node() {
+        return this.#node;
     }
-    get eventMap() {
-        return this.#eventMap;
+    set node(value) {
+        throw new Error("MiO Engine | node is readonly");
     }
-    set eventMap(value) {
-        throw new Error("eventMap is readonly");
+    constructor(tagName) {
+        this.#initialParams(tagName);
     }
-    get eventMapCustom() {
-        return this.#eventMapCustom;
-    }
-    set eventMapCustom(value) {
-        throw new Error("eventMapCustom is readonly");
-    }
-    /**
-     * @description register an event
-     * @param {EventType} type
-     * @param {EnumFunction} callback
-     * @param {EnumObject} self
-     */
-    registerEvent(type, callback, self) {
-        if (!type || !callback || !self) {
-            throw new Error("MiO Engine | Invalid arguments");
+    #initialParams(tagName) {
+        const _tagName = tagName;
+        if (!_tagName) {
+            this.#node = document.createElement("div");
         }
-        if (!this.#eventMap.has(type)) {
-            this.#eventMap.set(type, []);
-        }
-        const eventList = this.#eventMap.get(type);
-        if (eventList) {
-            eventList.push({ callback, self });
+        else {
+            this.#node = document.createElement(_tagName);
         }
     }
-    /**
-     * @description register an custom event
-     * @param {String} eventName
-     * @param {EnumFunction} callback
-     * @param {EnumObject} self
-     */
-    registerCustomEvent(eventName, callback, self) {
-        if (!eventName || !callback || !self) {
-            throw new Error("MiO Engine | Invalid arguments");
+    async appendToBody() {
+        try {
+            if (!this.#node) {
+                console.log("MiO Engine | node is not found");
+                return Promise.resolve(false);
+            }
+            if (document.readyState === "complete") {
+                document.body.appendChild(this.#node);
+                return Promise.resolve(true);
+            }
+            else {
+                return new Promise((resolve) => {
+                    const eventFn = () => {
+                        document.body.appendChild(this.#node);
+                        document.removeEventListener("DOMContentLoaded", eventFn);
+                        resolve(true);
+                    };
+                    document.addEventListener("DOMContentLoaded", eventFn);
+                });
+            }
         }
-        if (!this.#eventMapCustom.has(eventName)) {
-            this.#eventMapCustom.set(eventName, []);
-        }
-        const eventList = this.#eventMapCustom.get(eventName);
-        if (eventList) {
-            eventList.push({ callback, self });
-        }
-    }
-    /**
-     * @description remove an event
-     * @param {EventType} type
-     * @param {EnumFunction} callback
-     * @param {EnumObject} self
-     */
-    removeEvent(type, callback, self) {
-        const eventList = this.#eventMap.get(type);
-        if (eventList) {
-            this.#eventMap.set(type, eventList.filter(event => event.callback !== callback || event.self !== self));
+        catch (error) {
+            console.log("MiO Engine | node append to body error: ", error);
+            return Promise.resolve(false);
         }
     }
-    /**
-     * @description remove an event
-     * @param {String} eventName
-     * @param {EnumFunction} callback
-     * @param {EnumObject} self
-     */
-    removeCustomEvent(eventName, callback, self) {
-        const eventListCustom = this.#eventMapCustom.get(eventName);
-        if (eventListCustom) {
-            this.#eventMapCustom.set(eventName, eventListCustom.filter(eventCustom => eventCustom.callback !== callback || eventCustom.self !== self));
+    async appendToElement(nodeId) {
+        try {
+            const _nodeId = nodeId;
+            if (!_nodeId) {
+                console.log("MiO Engine | nodeId is needed");
+                return Promise.resolve(false);
+            }
+            if (!this.#node) {
+                console.log("MiO Engine | node is not found");
+                return Promise.resolve(false);
+            }
+            if (document.readyState === "complete") {
+                const nodeParent = document.getElementById(_nodeId);
+                if (!nodeParent) {
+                    console.log("MiO Engine | parent node with id " + _nodeId + " is not found");
+                    return Promise.resolve(false);
+                }
+                nodeParent.appendChild(this.#node);
+                return Promise.resolve(true);
+            }
+            else {
+                return new Promise((resolve) => {
+                    const eventFn = () => {
+                        if (this.#node) {
+                            const nodeParent = document.getElementById(_nodeId);
+                            if (!nodeParent) {
+                                console.log("MiO Engine | parent node with id " + _nodeId + " is not found");
+                                resolve(false);
+                            }
+                            else {
+                                nodeParent.appendChild(this.#node);
+                                document.removeEventListener("DOMContentLoaded", eventFn);
+                                resolve(true);
+                            }
+                        }
+                    };
+                    document.addEventListener("DOMContentLoaded", eventFn);
+                });
+            }
         }
-    }
-    /**
-     * @description remove all event
-     */
-    removeAllEvent() {
-        this.#eventMap.clear();
-        this.#eventMapCustom.clear();
-    }
-    /**
-     * @description dispatch an event
-     * @param {EventType} type
-     * @param {EnumObject} source
-     */
-    dispatchEvent(type, source) {
-        const eventList = this.#eventMap.get(type);
-        if (eventList) {
-            eventList.forEach(event => {
-                event.callback.call(event.self, source);
-            });
-        }
-    }
-    /**
-     * @description dispatch an event
-     * @param {String} eventName
-     * @param {EnumObject} source
-     */
-    dispatchEventCustom(eventName, source) {
-        const eventListCustom = this.#eventMapCustom.get(eventName);
-        if (eventListCustom) {
-            eventListCustom.forEach(eventCustom => {
-                eventCustom.callback.call(eventCustom.self, source);
-            });
+        catch (error) {
+            console.log("MiO Engine | node append to " + nodeId + " element error: ", error);
+            return Promise.resolve(false);
         }
     }
 }
 
-class Object3D extends EventDispatcher {
+class Canvas extends DocumentObjectModel {
+    get node() {
+        return super.node;
+    }
     constructor() {
+        super("canvas");
+    }
+    getContext(type) {
+        return this.node.getContext(type);
+    }
+    updateSize(width, height) {
+        this.node.width = width;
+        this.node.height = height;
+    }
+    addEventListener(type, fn, ...args) {
+        window.addEventListener(type, () => {
+            fn.call(null, ...args);
+        });
+    }
+}
+
+class WebGL2Renderer extends Renderer {
+    #canvas;
+    get gl() {
+        return this.#canvas.getContext("webgl2");
+    }
+    constructor(parentId) {
         super();
-        console.log(3434, this.eventMap);
+        this.#initialParams();
+        this.#initialCanvas(parentId);
+    }
+    #initialParams() {
+        this.#canvas = new Canvas();
+    }
+    #initialCanvas(parentId) {
+        const _parentId = parentId;
+        if (!_parentId) {
+            this.#canvas.appendToBody()
+                .then((res) => {
+                if (res) {
+                    const parentNode = this.#canvas.node.parentElement;
+                    this.#canvas.addEventListener("resize", () => {
+                        this.#canvas.updateSize(parentNode.clientWidth, parentNode.clientHeight);
+                    });
+                }
+            });
+        }
+        else {
+            this.#canvas.appendToElement(_parentId)
+                .then((res) => {
+                if (res) {
+                    const parentNode = this.#canvas.node.parentElement;
+                    this.#canvas.addEventListener("resize", () => {
+                        this.#canvas.updateSize(parentNode.clientWidth, parentNode.clientHeight);
+                    });
+                }
+            });
+        }
     }
 }
 
-const object = new Object3D();
-console.log(111, object);
 console.log("MiO-Engine | Enjoy Coding!");
+
+export { WebGL2Renderer };
 //# sourceMappingURL=mio-engine.js.map

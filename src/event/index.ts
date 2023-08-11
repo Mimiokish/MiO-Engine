@@ -1,1 +1,1 @@
-export { EventDispatcher } from "./event-dispatcher";
+export { EventDispatcher } from "./EventDispatcher";
