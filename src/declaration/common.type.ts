@@ -8,4 +8,4 @@ export type EnumObject = {
 
 export type EnumPromise = Promise<EnumType>;
 
-export type EnumFunction = (...args: EnumArray) => void | EnumType | EnumArray | EnumObject | EnumPromise
+export type EnumFunction = (...args: EnumArray) => void | EnumType | EnumArray | EnumObject | ArrayBuffer | EnumPromise
