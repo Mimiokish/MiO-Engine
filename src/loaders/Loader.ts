@@ -1,7 +1,18 @@
+import { ResponseType, ResponseData } from "../declaration";
+
 export class Loader {
+    #prefix: string;
     #path: string;
-    #responseType: string;
+    #url: string;
+    #requestHeaders: Headers;
     #crossOrigin: string;
+
+    protected get prefix(): string {
+        return this.#prefix;
+    }
+    protected set prefix(prefix: string) {
+        this.#prefix = prefix;
+    }
 
     protected get path(): string {
         return this.#path;
@@ -10,11 +21,18 @@ export class Loader {
         this.#path = path;
     }
 
-    protected get responseType(): string {
-        return this.#responseType;
+    protected get url(): string {
+        return this.#url;
     }
-    protected set responseType(responseType: string) {
-        this.#responseType = responseType;
+    protected set url(url: string) {
+        this.#url = url;
+    }
+
+    protected get requestHeaders(): Headers {
+        return this.#requestHeaders;
+    }
+    protected set requestHeaders(requestHeaders: Headers) {
+        this.#requestHeaders = requestHeaders;
     }
 
     protected get crossOrigin(): string {
@@ -30,63 +48,102 @@ export class Loader {
 
     #initialParams(): void {
         this.crossOrigin = "anonymous";
+        this.prefix = "";
         this.path = "";
+        this.url = "";
     }
 
-    load(url: string): void | Promise<Error> {
-        this.path = url;
+    resolveURL(): string {
+        let _prefix: string = this.prefix || "";
+        let _path: string = this.path || "";
 
-        if (!this.path) {
-            console.error("MiO Engine | GLTFLoader - url is required");
-            return Promise.reject(new Error("MiO Engine | GLTFLoader - url is required"));
-        }
-        console.log(7788899);
-
-        if (!this.path.includes("https://")) {
-            this.path = this.resolveURL(window.location.host, this.path);
-        }
-    }
-
-    loadAsync() {}
-
-    resolveURL(baseURL: string, relativeURL: string): string {
-        let _baseURL: string = baseURL;
-        if (_baseURL.endsWith("/")) {
-            _baseURL = _baseURL.slice(0, -1);
+        if (_prefix && _prefix.startsWith("/")) {
+            _prefix = _prefix.slice(1);
         }
 
-        let _relativeURL: string = relativeURL;
-        if (_relativeURL.startsWith("/")) {
-            _relativeURL = _relativeURL.slice(1);
+        if (_prefix && _prefix.endsWith("/")) {
+            _prefix = _prefix.slice(0, -1);
         }
 
-        return _baseURL + "/" + _relativeURL;
-    }
-
-    handleResponseStatus(response: Response): Response | Promise<Response> {
-        if (!response.ok) {
-            console.log("MiO Engine | Loader - failed to fetch from url");
-            return Promise.reject(response);
+        if (_path && _path.startsWith("/")) {
+            _path = _path.slice(1);
         }
 
-        if (response.status === 200) {
-            return response;
+        if (_prefix) {
+            this.url = "/" + _prefix + "/" + _path;
         } else {
-            console.log("MiO Engine | Loader - failed to fetch from url");
-            return Promise.reject(response);
+            this.url = "/" + _path;
+        }
+
+        return this.url;
+    }
+
+    /**
+     * validate url
+     * @param url
+     */
+    async load(url: string): Promise<ResponseData | boolean | Error> {
+        try {
+            this.path = url;
+
+            if (!this.path) {
+                return Promise.reject("url is required");
+            }
+
+            if (this.path.includes("https://")) {
+                this.url = this.path;
+            } else {
+                this.url = this.resolveURL();
+            }
+
+            return Promise.resolve(true);
+        } catch(error) {
+            return Promise.reject("failed to parse url with unknown error: " + error);
         }
     }
 
-    handleResponseData(response: Response): Promise<ArrayBuffer | Blob | JSON | string> {
-        switch (this.responseType) {
-            case "arraybuffer":
-                return response.arrayBuffer();
-            case "blob":
-                return response.blob();
-            case "json":
-                return response.json();
-            default:
-                return response.text();
+    async fetch(): Promise<Response | Error> {
+        try {
+            const response: Response = await fetch(this.url, {
+                headers: new Headers(this.requestHeaders)
+            });
+
+            return Promise.resolve(response);
+        } catch(error) {
+            return Promise.reject("failed to fetch from url with unknown error: " + error);
+        }
+    }
+
+    async handleResponseStatus(response: Response): Promise<boolean | Error> {
+        try {
+            if (!response.ok) {
+                return Promise.reject("failed to fetch from url");
+            }
+
+            if (response.status !== 200) {
+                return Promise.reject("response status " + response.status + " received");
+            }
+
+            return Promise.resolve(true);
+        } catch(error) {
+            return Promise.reject("failed to handle response status: " + error);
+        }
+    }
+
+    async handleResponseData(response: Response, responseType: ResponseType): Promise<ResponseData> {
+        try {
+            switch (responseType) {
+                case "arraybuffer":
+                    return Promise.resolve(response.arrayBuffer());
+                case "blob":
+                    return Promise.resolve(response.blob());
+                case "json":
+                    return Promise.resolve(response.json());
+                default:
+                    return Promise.resolve(response.text());
+            }
+        } catch(error) {
+            return Promise.reject("failed to handle response data: " + error);
         }
     }
 }

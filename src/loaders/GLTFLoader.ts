@@ -1,50 +1,42 @@
 import { Loader } from "./Loader";
-import { EnumFunction } from "../declaration";
+import { ResponseData } from "../declaration";
 
 export class GLTFLoader extends Loader {
     constructor() {
         super();
+
+        this.#initialParams();
     }
 
-    async load(url: string): Promise<any> {
+    #initialParams(): void {
+        this.crossOrigin = "anonymous";
+    }
+
+    async load(url: string): Promise<ResponseData | boolean | Error> {
         try {
             await super.load(url);
 
-            const response: Response = await fetch(this.path);
+            const response: Response | Error = await super.fetch();
 
-            console.log(3434, this.path);
-            return Promise.resolve(null);
+            if (response instanceof Response) {
+                await super.handleResponseStatus(response);
+
+                const data: ResponseData | Error = await super.handleResponseData(response, "json");
+
+                if (data) {
+                    console.log("MiO Engine | GLTFLoader - fetch success: ", response);
+                    console.log("MiO Engine | GLTFLoader - file load success: ", data);
+
+                    return Promise.resolve(data);
+                }
+            }
+
+            console.error(new Error("MiO Engine | GLTFLoader - file load failed: unknown"));
+            return Promise.resolve(false);
         } catch(error) {
-            console.error("MiO Engine | GLTFLoader - file load failed: ", error);
-            return Promise.reject(null);
+            console.error(new Error("MiO Engine | GLTFLoader - file load failed: " + error));
+            return Promise.resolve(false);
         }
-        // fetch(this.path)
-        //     .then((response: Response): Promise<ArrayBuffer> => {
-        //         const res: Response = super.handleResponse(response) as Response;
-        //         console.log(9999);
-        //
-        //         return res.arrayBuffer();
-        //     })
-        //     .then((data: ArrayBuffer): Promise<null> | void => {
-        //         const gltf = this.handleGLTF(data);
-        //
-        //         if (!gltf) {
-        //             console.error("MiO Engine | Loader - failed to parse data");
-        //             return Promise.reject(null);
-        //         } else {
-        //             if (onLoad) {
-        //                 onLoad(gltf);
-        //             }
-        //         }
-        //     })
-        //     .catch((error): Promise<null> | void => {
-        //         if (onError) {
-        //             onError(error);
-        //         } else {
-        //             console.error("MiO Engine | Loader - failed to load gltf: ", error);
-        //             return Promise.reject(null);
-        //         }
-        //     });
     }
 
     handleGLTF(data: ArrayBuffer): string {

@@ -9,3 +9,15 @@ export type EnumObject = {
 export type EnumPromise = Promise<EnumType>;
 
 export type EnumFunction = (...args: EnumArray) => void | EnumType | EnumArray | EnumObject | ArrayBuffer | EnumPromise
+
+export type ResponseType =
+    | "arraybuffer"
+    | "blob"
+    | "document"
+    | "json"
+
+export type ResponseData =
+    | ArrayBuffer
+    | Blob
+    | JSON
+    | string

@@ -184,20 +184,34 @@ class WebGL2Renderer extends Renderer {
 }
 
 class Loader {
+    #prefix;
     #path;
-    #responseType;
+    #url;
+    #requestHeaders;
     #crossOrigin;
+    get prefix() {
+        return this.#prefix;
+    }
+    set prefix(prefix) {
+        this.#prefix = prefix;
+    }
     get path() {
         return this.#path;
     }
     set path(path) {
         this.#path = path;
     }
-    get responseType() {
-        return this.#responseType;
+    get url() {
+        return this.#url;
     }
-    set responseType(responseType) {
-        this.#responseType = responseType;
+    set url(url) {
+        this.#url = url;
+    }
+    get requestHeaders() {
+        return this.#requestHeaders;
+    }
+    set requestHeaders(requestHeaders) {
+        this.#requestHeaders = requestHeaders;
     }
     get crossOrigin() {
         return this.#crossOrigin;
@@ -210,54 +224,92 @@ class Loader {
     }
     #initialParams() {
         this.crossOrigin = "anonymous";
+        this.prefix = "";
         this.path = "";
+        this.url = "";
     }
-    load(url) {
-        this.path = url;
-        if (!this.path) {
-            console.error("MiO Engine | GLTFLoader - url is required");
-            return Promise.reject(new Error("MiO Engine | GLTFLoader - url is required"));
+    resolveURL() {
+        let _prefix = this.prefix || "";
+        let _path = this.path || "";
+        if (_prefix && _prefix.startsWith("/")) {
+            _prefix = _prefix.slice(1);
         }
-        console.log(7788899);
-        if (!this.path.includes("https://")) {
-            this.path = this.resolveURL(window.location.host, this.path);
+        if (_prefix && _prefix.endsWith("/")) {
+            _prefix = _prefix.slice(0, -1);
         }
-    }
-    loadAsync() { }
-    resolveURL(baseURL, relativeURL) {
-        let _baseURL = baseURL;
-        if (_baseURL.endsWith("/")) {
-            _baseURL = _baseURL.slice(0, -1);
+        if (_path && _path.startsWith("/")) {
+            _path = _path.slice(1);
         }
-        let _relativeURL = relativeURL;
-        if (_relativeURL.startsWith("/")) {
-            _relativeURL = _relativeURL.slice(1);
-        }
-        return _baseURL + "/" + _relativeURL;
-    }
-    handleResponseStatus(response) {
-        if (!response.ok) {
-            console.log("MiO Engine | Loader - failed to fetch from url");
-            return Promise.reject(response);
-        }
-        if (response.status === 200) {
-            return response;
+        if (_prefix) {
+            this.url = "/" + _prefix + "/" + _path;
         }
         else {
-            console.log("MiO Engine | Loader - failed to fetch from url");
-            return Promise.reject(response);
+            this.url = "/" + _path;
+        }
+        return this.url;
+    }
+    /**
+     * validate url
+     * @param url
+     */
+    async load(url) {
+        try {
+            this.path = url;
+            if (!this.path) {
+                return Promise.reject("url is required");
+            }
+            if (this.path.includes("https://")) {
+                this.url = this.path;
+            }
+            else {
+                this.url = this.resolveURL();
+            }
+            return Promise.resolve(true);
+        }
+        catch (error) {
+            return Promise.reject("failed to parse url with unknown error: " + error);
         }
     }
-    handleResponseData(response) {
-        switch (this.responseType) {
-            case "arraybuffer":
-                return response.arrayBuffer();
-            case "blob":
-                return response.blob();
-            case "json":
-                return response.json();
-            default:
-                return response.text();
+    async fetch() {
+        try {
+            const response = await fetch(this.url, {
+                headers: new Headers(this.requestHeaders)
+            });
+            return Promise.resolve(response);
+        }
+        catch (error) {
+            return Promise.reject("failed to fetch from url with unknown error: " + error);
+        }
+    }
+    async handleResponseStatus(response) {
+        try {
+            if (!response.ok) {
+                return Promise.reject("failed to fetch from url");
+            }
+            if (response.status !== 200) {
+                return Promise.reject("response status " + response.status + " received");
+            }
+            return Promise.resolve(true);
+        }
+        catch (error) {
+            return Promise.reject("failed to handle response status: " + error);
+        }
+    }
+    async handleResponseData(response, responseType) {
+        try {
+            switch (responseType) {
+                case "arraybuffer":
+                    return Promise.resolve(response.arrayBuffer());
+                case "blob":
+                    return Promise.resolve(response.blob());
+                case "json":
+                    return Promise.resolve(response.json());
+                default:
+                    return Promise.resolve(response.text());
+            }
+        }
+        catch (error) {
+            return Promise.reject("failed to handle response data: " + error);
         }
     }
 }
@@ -265,45 +317,31 @@ class Loader {
 class GLTFLoader extends Loader {
     constructor() {
         super();
+        this.#initialParams();
+    }
+    #initialParams() {
+        this.crossOrigin = "anonymous";
     }
     async load(url) {
         try {
             await super.load(url);
-            const response = await fetch(this.path);
-            console.log(3434, this.path);
-            return Promise.resolve(null);
+            const response = await super.fetch();
+            if (response instanceof Response) {
+                await super.handleResponseStatus(response);
+                const data = await super.handleResponseData(response, "json");
+                if (data) {
+                    console.log("MiO Engine | GLTFLoader - fetch success: ", response);
+                    console.log("MiO Engine | GLTFLoader - file load success: ", data);
+                    return Promise.resolve(data);
+                }
+            }
+            console.error(new Error("MiO Engine | GLTFLoader - file load failed: unknown"));
+            return Promise.resolve(false);
         }
         catch (error) {
-            console.error("MiO Engine | GLTFLoader - file load failed: ", error);
-            return Promise.reject(null);
+            console.error(new Error("MiO Engine | GLTFLoader - file load failed: " + error));
+            return Promise.resolve(false);
         }
-        // fetch(this.path)
-        //     .then((response: Response): Promise<ArrayBuffer> => {
-        //         const res: Response = super.handleResponse(response) as Response;
-        //         console.log(9999);
-        //
-        //         return res.arrayBuffer();
-        //     })
-        //     .then((data: ArrayBuffer): Promise<null> | void => {
-        //         const gltf = this.handleGLTF(data);
-        //
-        //         if (!gltf) {
-        //             console.error("MiO Engine | Loader - failed to parse data");
-        //             return Promise.reject(null);
-        //         } else {
-        //             if (onLoad) {
-        //                 onLoad(gltf);
-        //             }
-        //         }
-        //     })
-        //     .catch((error): Promise<null> | void => {
-        //         if (onError) {
-        //             onError(error);
-        //         } else {
-        //             console.error("MiO Engine | Loader - failed to load gltf: ", error);
-        //             return Promise.reject(null);
-        //         }
-        //     });
     }
     handleGLTF(data) {
         console.log(2323, data);
