@@ -1,11 +1,20 @@
 import { ResponseType, ResponseData } from "../declaration";
+import { LoaderController } from "./LoaderController";
 
 export class Loader {
+    #controller: LoaderController;
     #prefix: string;
     #path: string;
     #url: string;
     #requestHeaders: Headers;
     #crossOrigin: string;
+
+    protected get controller(): LoaderController {
+        return this.#controller;
+    }
+    protected set controller(controller: LoaderController) {
+        throw new Error("MiO Engine | Loader - controller is readonly");
+    }
 
     protected get prefix(): string {
         return this.#prefix;
@@ -47,13 +56,14 @@ export class Loader {
     }
 
     #initialParams(): void {
+        this.#controller = new LoaderController();
         this.crossOrigin = "anonymous";
         this.prefix = "";
         this.path = "";
         this.url = "";
     }
 
-    resolveURL(): string {
+    protected resolveURL(): string {
         let _prefix: string = this.prefix || "";
         let _path: string = this.path || "";
 
@@ -82,7 +92,7 @@ export class Loader {
      * validate url
      * @param url
      */
-    async load(url: string): Promise<ResponseData | boolean | Error> {
+    protected async load(url: string): Promise<ResponseData | boolean | Error> {
         try {
             this.path = url;
 
@@ -98,11 +108,11 @@ export class Loader {
 
             return Promise.resolve(true);
         } catch(error) {
-            return Promise.reject("failed to parse url with unknown error: " + error);
+            return Promise.reject("failed to parse url with unknown message: " + error);
         }
     }
 
-    async fetch(): Promise<Response | Error> {
+    protected async fetch(): Promise<Response | Error> {
         try {
             const response: Response = await fetch(this.url, {
                 headers: new Headers(this.requestHeaders)
@@ -110,11 +120,11 @@ export class Loader {
 
             return Promise.resolve(response);
         } catch(error) {
-            return Promise.reject("failed to fetch from url with unknown error: " + error);
+            return Promise.reject("failed to fetch from url with unknown message: " + error);
         }
     }
 
-    async handleResponseStatus(response: Response): Promise<boolean | Error> {
+    protected async handleResponseStatus(response: Response): Promise<boolean | Error> {
         try {
             if (!response.ok) {
                 return Promise.reject("failed to fetch from url");
@@ -130,7 +140,7 @@ export class Loader {
         }
     }
 
-    async handleResponseData(response: Response, responseType: ResponseType): Promise<ResponseData> {
+    protected async handleResponseData(response: Response, responseType: ResponseType): Promise<ResponseData> {
         try {
             switch (responseType) {
                 case "arraybuffer":

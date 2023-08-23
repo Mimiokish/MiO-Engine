@@ -1,4 +1,4 @@
-export type EnumType = string | number | boolean | null | undefined | EnumObject;
+export type EnumType = string | number | boolean | null | undefined | ArrayBuffer | Blob | JSON | EnumObject;
 
 export type EnumArray = Array<EnumType | EnumObject>;
 

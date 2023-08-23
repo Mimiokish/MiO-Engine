@@ -45,7 +45,7 @@ export class DocumentObjectModel {
                 });
             }
         } catch (error) {
-            console.log("MiO Engine | node append to body error: ", error);
+            console.log("MiO Engine | node append to body message: ", error);
             return Promise.resolve(false);
         }
     }
@@ -94,7 +94,7 @@ export class DocumentObjectModel {
             }
 
         } catch (error) {
-            console.log("MiO Engine | node append to " + nodeId + " element error: ", error);
+            console.log("MiO Engine | node append to " + nodeId + " element message: ", error);
             return Promise.resolve(false);
         }
     }

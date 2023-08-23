@@ -61,7 +61,7 @@ class DocumentObjectModel {
             }
         }
         catch (error) {
-            console.log("MiO Engine | node append to body error: ", error);
+            console.log("MiO Engine | node append to body message: ", error);
             return Promise.resolve(false);
         }
     }
@@ -106,7 +106,7 @@ class DocumentObjectModel {
             }
         }
         catch (error) {
-            console.log("MiO Engine | node append to " + nodeId + " element error: ", error);
+            console.log("MiO Engine | node append to " + nodeId + " element message: ", error);
             return Promise.resolve(false);
         }
     }
@@ -183,12 +183,53 @@ class WebGL2Renderer extends Renderer {
     }
 }
 
+class LoaderController {
+    #status;
+    #queue;
+    constructor() {
+        this.#initialParams();
+    }
+    #initialParams() {
+        this.#status = "idle";
+    }
+    get status() {
+        return this.#status;
+    }
+    set status(status) {
+        this.#status = status;
+    }
+    get queue() {
+        return this.#queue;
+    }
+    set queue(queue) {
+        throw new Error("MiO Engine | LoaderController - queue is readonly");
+    }
+    set(key, type) {
+        const _key = key;
+        if (!_key) {
+            console.error(new Error("MiO Engine | LoaderController - set failed: key is required"));
+            return;
+        }
+        this.#queue.set(_key, type);
+    }
+    delete(url) {
+        this.#queue.delete(url);
+    }
+}
+
 class Loader {
+    #controller;
     #prefix;
     #path;
     #url;
     #requestHeaders;
     #crossOrigin;
+    get controller() {
+        return this.#controller;
+    }
+    set controller(controller) {
+        throw new Error("MiO Engine | Loader - controller is readonly");
+    }
     get prefix() {
         return this.#prefix;
     }
@@ -223,6 +264,7 @@ class Loader {
         this.#initialParams();
     }
     #initialParams() {
+        this.#controller = new LoaderController();
         this.crossOrigin = "anonymous";
         this.prefix = "";
         this.path = "";
@@ -267,7 +309,7 @@ class Loader {
             return Promise.resolve(true);
         }
         catch (error) {
-            return Promise.reject("failed to parse url with unknown error: " + error);
+            return Promise.reject("failed to parse url with unknown message: " + error);
         }
     }
     async fetch() {
@@ -278,7 +320,7 @@ class Loader {
             return Promise.resolve(response);
         }
         catch (error) {
-            return Promise.reject("failed to fetch from url with unknown error: " + error);
+            return Promise.reject("failed to fetch from url with unknown message: " + error);
         }
     }
     async handleResponseStatus(response) {
@@ -322,16 +364,21 @@ class GLTFLoader extends Loader {
     #initialParams() {
         this.crossOrigin = "anonymous";
     }
+    #handleGLTF(data) {
+        console.log(2323, data);
+        return "pass";
+    }
     async load(url) {
         try {
             await super.load(url);
             const response = await super.fetch();
             if (response instanceof Response) {
+                console.log("MiO Engine | GLTFLoader - fetch success: ", response);
                 await super.handleResponseStatus(response);
                 const data = await super.handleResponseData(response, "json");
                 if (data) {
-                    console.log("MiO Engine | GLTFLoader - fetch success: ", response);
                     console.log("MiO Engine | GLTFLoader - file load success: ", data);
+                    // this.controller.set("", data);
                     return Promise.resolve(data);
                 }
             }
@@ -342,10 +389,6 @@ class GLTFLoader extends Loader {
             console.error(new Error("MiO Engine | GLTFLoader - file load failed: " + error));
             return Promise.resolve(false);
         }
-    }
-    handleGLTF(data) {
-        console.log(2323, data);
-        return "pass";
     }
 }
 
