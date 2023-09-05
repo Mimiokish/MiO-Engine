@@ -1,8 +1,8 @@
 import * as MiOEngine from "./mio-engine.js";
-console.log(111, MiOEngine);
-
-const renderer = new MiOEngine.WebGL2Renderer("MiO-Engine");
-console.log(222, renderer);
+// console.log(111, MiOEngine);
+//
+// const renderer = new MiOEngine.WebGL2Renderer("MiO-Engine");
+// console.log(222, renderer);
 
 const gltfLoader = new MiOEngine.GLTFLoader();
 console.log(333, gltfLoader);
@@ -10,5 +10,5 @@ console.log(333, gltfLoader);
 // gltfLoader.load("");
 gltfLoader.load("/cdn/gltf/box/box.gltf")
     .then((gltf) => {
-        console.log(545, gltf);
+        // console.log(545, gltf);
     });

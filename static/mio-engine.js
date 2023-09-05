@@ -219,9 +219,8 @@ class LoaderController {
 
 class Loader {
     #controller;
-    #prefix;
-    #path;
-    #url;
+    #urlModifier;
+    #withCredentials;
     #requestHeaders;
     #crossOrigin;
     get controller() {
@@ -230,29 +229,17 @@ class Loader {
     set controller(controller) {
         throw new Error("MiO Engine | Loader - controller is readonly");
     }
-    get prefix() {
-        return this.#prefix;
+    get urlModifier() {
+        return this.#urlModifier;
     }
-    set prefix(prefix) {
-        this.#prefix = prefix;
+    set urlModifier(urlModifier) {
+        this.#urlModifier = urlModifier;
     }
-    get path() {
-        return this.#path;
+    get withCredentials() {
+        return this.#withCredentials;
     }
-    set path(path) {
-        this.#path = path;
-    }
-    get url() {
-        return this.#url;
-    }
-    set url(url) {
-        this.#url = url;
-    }
-    get requestHeaders() {
-        return this.#requestHeaders;
-    }
-    set requestHeaders(requestHeaders) {
-        this.#requestHeaders = requestHeaders;
+    set withCredentials(withCredentials) {
+        this.#withCredentials = withCredentials;
     }
     get crossOrigin() {
         return this.#crossOrigin;
@@ -260,63 +247,39 @@ class Loader {
     set crossOrigin(crossOrigin) {
         this.#crossOrigin = crossOrigin;
     }
+    get requestHeaders() {
+        return this.#requestHeaders;
+    }
+    set requestHeaders(requestHeaders) {
+        this.#requestHeaders = requestHeaders;
+    }
     constructor() {
         this.#initialParams();
     }
     #initialParams() {
         this.#controller = new LoaderController();
+        this.urlModifier = undefined;
+        this.withCredentials = false;
         this.crossOrigin = "anonymous";
-        this.prefix = "";
-        this.path = "";
-        this.url = "";
     }
-    resolveURL() {
-        let _prefix = this.prefix || "";
-        let _path = this.path || "";
-        if (_prefix && _prefix.startsWith("/")) {
-            _prefix = _prefix.slice(1);
+    resolveURL(url) {
+        const _url = url;
+        if (!_url) {
+            console.error(new Error("MiO Engine | Loader - resolveURL failed: url is required"));
+            return "";
         }
-        if (_prefix && _prefix.endsWith("/")) {
-            _prefix = _prefix.slice(0, -1);
+        if (this.urlModifier) {
+            return this.urlModifier(_url);
         }
-        if (_path && _path.startsWith("/")) {
-            _path = _path.slice(1);
-        }
-        if (_prefix) {
-            this.url = "/" + _prefix + "/" + _path;
-        }
-        else {
-            this.url = "/" + _path;
-        }
-        return this.url;
+        return _url;
     }
-    /**
-     * validate url
-     * @param url
-     */
-    async load(url) {
+    async fetch(url) {
         try {
-            this.path = url;
-            if (!this.path) {
-                return Promise.reject("url is required");
-            }
-            if (this.path.includes("https://")) {
-                this.url = this.path;
-            }
-            else {
-                this.url = this.resolveURL();
-            }
-            return Promise.resolve(true);
-        }
-        catch (error) {
-            return Promise.reject("failed to parse url with unknown message: " + error);
-        }
-    }
-    async fetch() {
-        try {
-            const response = await fetch(this.url, {
-                headers: new Headers(this.requestHeaders)
+            const req = new Request(url, {
+                headers: new Headers(this.requestHeaders),
+                credentials: this.withCredentials ? "include" : "same-origin"
             });
+            const response = await fetch(req);
             return Promise.resolve(response);
         }
         catch (error) {
@@ -364,23 +327,33 @@ class GLTFLoader extends Loader {
     #initialParams() {
         this.crossOrigin = "anonymous";
     }
-    #handleGLTF(data) {
-        console.log(2323, data);
-        return "pass";
-    }
     async load(url) {
         try {
-            await super.load(url);
-            const response = await super.fetch();
-            if (response instanceof Response) {
-                console.log("MiO Engine | GLTFLoader - fetch success: ", response);
-                await super.handleResponseStatus(response);
-                const data = await super.handleResponseData(response, "json");
-                if (data) {
-                    console.log("MiO Engine | GLTFLoader - file load success: ", data);
-                    // this.controller.set("", data);
-                    return Promise.resolve(data);
+            const _url = this.resolveURL(url);
+            const res = await super.fetch(_url);
+            if (res instanceof Response) {
+                const cfgGltf = await res.json();
+                const path = _url.split("/").slice(0, -1).join("/");
+                console.log(111, cfgGltf);
+                const indexBufferView = 0;
+                const bufferView = cfgGltf.bufferViews[indexBufferView];
+                console.log(333, bufferView);
+                if (bufferView) {
+                    // get current buffer info
+                    const indexBuffer = bufferView.buffer;
+                    const byteOffset = bufferView.byteOffset;
+                    const byteLength = bufferView.byteLength;
+                    // get current buffer data
+                    const buffer = cfgGltf.buffers[indexBuffer];
+                    const bufferUri = buffer.uri;
+                    const resBin = await super.fetch(path + "/" + bufferUri);
+                    console.log(8888, resBin);
+                    if ("arrayBuffer" in resBin) {
+                        const bufferViewData = new Uint8Array(await resBin.arrayBuffer(), byteOffset, byteLength);
+                        console.log(444, bufferViewData);
+                    }
                 }
+                return Promise.resolve(true);
             }
             console.error(new Error("MiO Engine | GLTFLoader - file load failed: unknown"));
             return Promise.resolve(false);

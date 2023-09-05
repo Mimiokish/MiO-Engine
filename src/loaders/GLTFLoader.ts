@@ -1,5 +1,5 @@
 import { Loader } from "./Loader";
-import { ResponseData } from "../declaration";
+import { ResponseData, GLTFConfig, Buffer, BufferView } from "../declaration";
 
 export class GLTFLoader extends Loader {
     constructor() {
@@ -12,30 +12,41 @@ export class GLTFLoader extends Loader {
         this.crossOrigin = "anonymous";
     }
 
-    #handleGLTF(data: ArrayBuffer): string {
-        console.log(2323, data);
-        return "pass";
-    }
-
     public async load(url: string): Promise<ResponseData | boolean | Error> {
         try {
-            await super.load(url);
+            const _url: string = this.resolveURL(url);
 
-            const response: Response | Error = await super.fetch();
+            const res: Response | Error = await super.fetch(_url);
 
-            if (response instanceof Response) {
-                console.log("MiO Engine | GLTFLoader - fetch success: ", response);
-                await super.handleResponseStatus(response);
+            if (res instanceof Response) {
+                const cfgGltf: GLTFConfig = await res.json();
+                const path = _url.split("/").slice(0, -1).join("/");
+                console.log(111, cfgGltf);
 
-                const data: ResponseData | Error = await super.handleResponseData(response, "json");
+                const indexBufferView = 0;
+                const bufferView: BufferView = cfgGltf.bufferViews[indexBufferView];
+                console.log(333, bufferView);
 
-                if (data) {
-                    console.log("MiO Engine | GLTFLoader - file load success: ", data);
+                if (bufferView) {
+                    // get current buffer info
+                    const indexBuffer: number = bufferView.buffer;
+                    const byteOffset: number = bufferView.byteOffset;
+                    const byteLength: number = bufferView.byteLength;
 
-                    // this.controller.set("", data);
+                    // get current buffer data
+                    const buffer: Buffer = cfgGltf.buffers[indexBuffer];
+                    const bufferUri: string = buffer.uri;
 
-                    return Promise.resolve(data);
+                    const resBin: Response | Error = await super.fetch(path + "/" + bufferUri);
+                    console.log(8888, resBin);
+
+                    if ("arrayBuffer" in resBin) {
+                        const bufferViewData = new Uint8Array(await resBin.arrayBuffer(), byteOffset, byteLength);
+                        console.log(444, bufferViewData);
+                    }
                 }
+
+                return Promise.resolve(true);
             }
 
             console.error(new Error("MiO Engine | GLTFLoader - file load failed: unknown"));
