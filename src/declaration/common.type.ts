@@ -21,3 +21,24 @@ export type ResponseData =
     | Blob
     | JSON
     | string
+
+export type RequestMode =
+    | "cors"
+    | "no-cors"
+    | "same-origin"
+    | "navigate"
+    | "websocket"
+
+export type RequestCredentials =
+    | "omit"
+    | "same-origin"
+    | "include"
+
+export type RequestConfig = {
+    mode: RequestMode
+    credentials: RequestCredentials
+}
+
+export type RequestHeaders = {
+    [key: string]: string
+}

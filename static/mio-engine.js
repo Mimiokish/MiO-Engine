@@ -220,9 +220,8 @@ class LoaderController {
 class Loader {
     #controller;
     #urlModifier;
-    #withCredentials;
+    #requestConfig;
     #requestHeaders;
-    #crossOrigin;
     get controller() {
         return this.#controller;
     }
@@ -235,23 +234,35 @@ class Loader {
     set urlModifier(urlModifier) {
         this.#urlModifier = urlModifier;
     }
-    get withCredentials() {
-        return this.#withCredentials;
+    /**
+     * @description request config
+     */
+    get requestConfig() {
+        return this.#requestConfig;
     }
-    set withCredentials(withCredentials) {
-        this.#withCredentials = withCredentials;
+    set requestConfig(value) {
+        throw new Error("MiO Engine | Loader - requestConfig is readonly");
     }
-    get crossOrigin() {
-        return this.#crossOrigin;
+    get requestMode() {
+        return this.#requestConfig.mode;
     }
-    set crossOrigin(crossOrigin) {
-        this.#crossOrigin = crossOrigin;
+    set requestMode(value) {
+        this.#requestConfig.mode = value;
     }
+    get requestCredentials() {
+        return this.#requestConfig.credentials;
+    }
+    set requestCredentials(value) {
+        this.#requestConfig.credentials = value;
+    }
+    /**
+     * @description request headers
+     */
     get requestHeaders() {
         return this.#requestHeaders;
     }
-    set requestHeaders(requestHeaders) {
-        this.#requestHeaders = requestHeaders;
+    set requestHeaders(value) {
+        throw new Error("MiO Engine | Loader - requestHeaders is readonly");
     }
     constructor() {
         this.#initialParams();
@@ -259,8 +270,13 @@ class Loader {
     #initialParams() {
         this.#controller = new LoaderController();
         this.urlModifier = undefined;
-        this.withCredentials = false;
-        this.crossOrigin = "anonymous";
+        // set default request config
+        this.#requestConfig = {
+            mode: "cors",
+            credentials: "include"
+        };
+        // set default request headers
+        this.#requestHeaders = {};
     }
     resolveURL(url) {
         const _url = url;
@@ -272,19 +288,6 @@ class Loader {
             return this.urlModifier(_url);
         }
         return _url;
-    }
-    async fetch(url) {
-        try {
-            const req = new Request(url, {
-                headers: new Headers(this.requestHeaders),
-                credentials: this.withCredentials ? "include" : "same-origin"
-            });
-            const response = await fetch(req);
-            return Promise.resolve(response);
-        }
-        catch (error) {
-            return Promise.reject("failed to fetch from url with unknown message: " + error);
-        }
     }
     async handleResponseStatus(response) {
         try {
@@ -300,21 +303,20 @@ class Loader {
             return Promise.reject("failed to handle response status: " + error);
         }
     }
-    async handleResponseData(response, responseType) {
+    async fetch(url) {
         try {
-            switch (responseType) {
-                case "arraybuffer":
-                    return Promise.resolve(response.arrayBuffer());
-                case "blob":
-                    return Promise.resolve(response.blob());
-                case "json":
-                    return Promise.resolve(response.json());
-                default:
-                    return Promise.resolve(response.text());
+            const req = new Request(url, {
+                headers: new Headers(this.requestHeaders)
+            });
+            const response = await fetch(req);
+            const responseStatus = await this.handleResponseStatus(response);
+            if (!responseStatus) {
+                return Promise.reject(false);
             }
+            return Promise.resolve(response);
         }
         catch (error) {
-            return Promise.reject("failed to handle response data: " + error);
+            return Promise.reject("failed to fetch from url with unknown message: " + error);
         }
     }
 }
@@ -325,38 +327,39 @@ class GLTFLoader extends Loader {
         this.#initialParams();
     }
     #initialParams() {
-        this.crossOrigin = "anonymous";
+        this.requestMode = "cors";
+        this.requestCredentials = "same-origin";
     }
     async load(url) {
         try {
             const _url = this.resolveURL(url);
-            const res = await super.fetch(_url);
-            if (res instanceof Response) {
-                const cfgGltf = await res.json();
-                const path = _url.split("/").slice(0, -1).join("/");
-                console.log(111, cfgGltf);
-                const indexBufferView = 0;
-                const bufferView = cfgGltf.bufferViews[indexBufferView];
-                console.log(333, bufferView);
-                if (bufferView) {
-                    // get current buffer info
-                    const indexBuffer = bufferView.buffer;
-                    const byteOffset = bufferView.byteOffset;
-                    const byteLength = bufferView.byteLength;
-                    // get current buffer data
-                    const buffer = cfgGltf.buffers[indexBuffer];
-                    const bufferUri = buffer.uri;
-                    const resBin = await super.fetch(path + "/" + bufferUri);
-                    console.log(8888, resBin);
-                    if ("arrayBuffer" in resBin) {
-                        const bufferViewData = new Uint8Array(await resBin.arrayBuffer(), byteOffset, byteLength);
-                        console.log(444, bufferViewData);
-                    }
-                }
-                return Promise.resolve(true);
+            const response = await this.fetch(_url);
+            if (response instanceof Error || !response) {
+                console.error(new Error("MiO Engine | GLTFLoader - file load failed: unknown"));
+                return Promise.resolve(false);
             }
-            console.error(new Error("MiO Engine | GLTFLoader - file load failed: unknown"));
-            return Promise.resolve(false);
+            const cfgGltf = await response.json();
+            const path = _url.split("/").slice(0, -1).join("/");
+            // console.log("GLTF | Raw: ", cfgGltf);
+            const indexBufferView = 0;
+            const bufferView = cfgGltf.bufferViews[indexBufferView];
+            // console.log("GLTF | BufferView: ", bufferView);
+            if (bufferView) {
+                // get current buffer info
+                const indexBuffer = bufferView.buffer;
+                const byteOffset = bufferView.byteOffset;
+                const byteLength = bufferView.byteLength;
+                // get current buffer data
+                const buffer = cfgGltf.buffers[indexBuffer];
+                const bufferUri = buffer.uri;
+                const DataBin = await super.fetch(path + "/" + bufferUri);
+                console.log("GLTF | Bin Data: ", DataBin);
+                if ("arrayBuffer" in DataBin) {
+                    const bufferViewData = new Uint8Array(await DataBin.arrayBuffer(), byteOffset, byteLength);
+                    console.log("GLTF | Array Buffer: ", bufferViewData);
+                }
+            }
+            return Promise.resolve(true);
         }
         catch (error) {
             console.error(new Error("MiO Engine | GLTFLoader - file load failed: " + error));
@@ -365,7 +368,175 @@ class GLTFLoader extends Loader {
     }
 }
 
+/**
+ * @description event dispatcher
+ */
+class EventDispatcher {
+    #eventMap;
+    #eventMapCustom;
+    constructor() {
+        this.#eventMap = new Map();
+        this.#eventMapCustom = new Map();
+    }
+    get eventMap() {
+        return this.#eventMap;
+    }
+    set eventMap(value) {
+        throw new Error("eventMap is readonly");
+    }
+    get eventMapCustom() {
+        return this.#eventMapCustom;
+    }
+    set eventMapCustom(value) {
+        throw new Error("eventMapCustom is readonly");
+    }
+    /**
+     * @description register an event
+     * @param {EventType} type
+     * @param {EnumFunction} callback
+     * @param {EnumObject} self
+     */
+    registerEvent(type, callback, self) {
+        if (!type || !callback || !self) {
+            throw new Error("MiO Engine | Invalid arguments");
+        }
+        if (!this.#eventMap.has(type)) {
+            this.#eventMap.set(type, []);
+        }
+        const eventList = this.#eventMap.get(type);
+        if (eventList) {
+            eventList.push({ callback, self });
+        }
+    }
+    /**
+     * @description register an custom event
+     * @param {String} eventName
+     * @param {EnumFunction} callback
+     * @param {EnumObject} self
+     */
+    registerCustomEvent(eventName, callback, self) {
+        if (!eventName || !callback || !self) {
+            throw new Error("MiO Engine | Invalid arguments");
+        }
+        if (!this.#eventMapCustom.has(eventName)) {
+            this.#eventMapCustom.set(eventName, []);
+        }
+        const eventList = this.#eventMapCustom.get(eventName);
+        if (eventList) {
+            eventList.push({ callback, self });
+        }
+    }
+    /**
+     * @description remove an event
+     * @param {EventType} type
+     * @param {EnumFunction} callback
+     * @param {EnumObject} self
+     */
+    removeEvent(type, callback, self) {
+        const eventList = this.#eventMap.get(type);
+        if (eventList) {
+            this.#eventMap.set(type, eventList.filter(event => event.callback !== callback || event.self !== self));
+        }
+    }
+    /**
+     * @description remove an event
+     * @param {String} eventName
+     * @param {EnumFunction} callback
+     * @param {EnumObject} self
+     */
+    removeCustomEvent(eventName, callback, self) {
+        const eventListCustom = this.#eventMapCustom.get(eventName);
+        if (eventListCustom) {
+            this.#eventMapCustom.set(eventName, eventListCustom.filter(eventCustom => eventCustom.callback !== callback || eventCustom.self !== self));
+        }
+    }
+    /**
+     * @description remove all event
+     */
+    removeAllEvent() {
+        this.#eventMap.clear();
+        this.#eventMapCustom.clear();
+    }
+    /**
+     * @description dispatch an event
+     * @param {EventType} type
+     * @param {EnumObject} source
+     */
+    dispatchEvent(type, source) {
+        const eventList = this.#eventMap.get(type);
+        if (eventList) {
+            eventList.forEach(event => {
+                event.callback.call(event.self, source);
+            });
+        }
+    }
+    /**
+     * @description dispatch an event
+     * @param {String} eventName
+     * @param {EnumObject} source
+     */
+    dispatchEventCustom(eventName, source) {
+        const eventListCustom = this.#eventMapCustom.get(eventName);
+        if (eventListCustom) {
+            eventListCustom.forEach(eventCustom => {
+                eventCustom.callback.call(eventCustom.self, source);
+            });
+        }
+    }
+}
+
+class UtilsGeneral {
+    constructor() {
+        this.#initialParams();
+    }
+    #initialParams() {
+    }
+    /**
+     * @description Generate a random hexadecimal string
+     */
+    GenerateHex() {
+        // Generate an array of random bytes (16 bytes total)
+        const randomBytes = new Uint8Array(16);
+        crypto.getRandomValues(randomBytes);
+        // Set the version (4) and variant (2 bits 10) as per RFC4122
+        randomBytes[6] = (randomBytes[6] & 0x0f) | 0x40; // Set the version to 4
+        randomBytes[8] = (randomBytes[8] & 0x3f) | 0x80; // Set the variant to 10
+        // Convert the random bytes to a hexadecimal string
+        return Array.from(randomBytes, byte => byte.toString(16).padStart(2, "0"));
+    }
+    /**
+     * @description Generate a version 4 UUID
+     */
+    GenerateUUID() {
+        const hex = this.GenerateHex();
+        // Format the UUID segments and join them with hyphens
+        const uuid = [
+            hex.slice(0, 4).join(""),
+            hex.slice(4, 6).join(""),
+            hex.slice(6, 8).join(""),
+            hex.slice(8, 10).join(""),
+            hex.slice(10).join("")
+        ].join("-");
+        return uuid.toUpperCase();
+    }
+}
+
+const Utils = {
+    General: new UtilsGeneral()
+};
+
+class Object3D extends EventDispatcher {
+    #uuid;
+    constructor() {
+        super();
+        this.#initialParams();
+    }
+    #initialParams() {
+        this.#uuid = Utils.General.GenerateUUID();
+    }
+}
+
 console.log("MiO-Engine | Enjoy Coding!");
 
-export { GLTFLoader, WebGL2Renderer };
+export { GLTFLoader, Object3D, WebGL2Renderer };
 //# sourceMappingURL=mio-engine.js.map

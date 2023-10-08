@@ -1,8 +1,16 @@
 import { EventDispatcher } from "../event";
+import Utils from "../utils";
 
 export class Object3D extends EventDispatcher {
+    #uuid: string;
+
     constructor() {
         super();
-        console.log(3434, this.eventMap);
+
+        this.#initialParams();
+    }
+
+    #initialParams(): void {
+        this.#uuid = Utils.General.GenerateUUID();
     }
 }
