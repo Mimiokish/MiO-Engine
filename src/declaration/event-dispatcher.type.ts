@@ -5,12 +5,6 @@ export type Event = {
     callback: EnumFunction
 }
 
-export type EventMap = Map<EventType, Array<Event>>
-
-export type EventMapCustom = Map<string, Array<Event>>
-
-export type EventType = EventTypeMouse | EventTypeKeyboard
-
 export type EventTypeMouse =
     | "click"
     | "dblclick"
@@ -26,3 +20,7 @@ export type EventTypeKeyboard =
     | "keydown"
     | "keypress"
     | "keyup"
+
+export type EventType = EventTypeMouse | EventTypeKeyboard
+
+export type EventMap = Map<EventType, Array<Event>>
