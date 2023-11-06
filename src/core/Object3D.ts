@@ -12,5 +12,6 @@ export class Object3D extends EventDispatcher {
 
     #initialParams(): void {
         this.#uuid = Utils.General.GenerateUUID();
+        console.log(111, this.#uuid);
     }
 }
