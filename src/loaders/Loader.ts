@@ -1,4 +1,4 @@
-import {RequestConfig, RequestMode, RequestCredentials, RequestHeaders, ResponseType, ResponseData, UrlModifier} from "../declaration";
+import { RequestConfig, RequestMode, RequestCredentials, RequestHeaders, ResponseType, ResponseData, UrlModifier } from "../declaration";
 import { LoaderController } from "./LoaderController";
 
 export class Loader {

@@ -481,6 +481,7 @@ class Object3D extends EventDispatcher {
     }
     #initialParams() {
         this.#uuid = Utils.General.GenerateUUID();
+        console.log(111, this.#uuid);
     }
 }
 
