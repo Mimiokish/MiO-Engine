@@ -1,1 +1,3 @@
-export class WebGL2Program {}
+export class WebGL2Program {
+
+}

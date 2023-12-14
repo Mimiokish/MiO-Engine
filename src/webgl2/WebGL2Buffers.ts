@@ -1,1 +1,3 @@
-export class WebGL2Buffers {}
+export class WebGL2Buffers {
+
+}

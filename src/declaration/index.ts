@@ -3,5 +3,4 @@ export { Event, EventType, EventMap } from "./event-dispatcher.type";
 export { Message, MessageType, MessageMap } from "./message.type";
 export { HTMLTagName, HTMLNode } from "./dom.type";
 export { LoaderStatus, UrlModifier, GLTFConfig, Buffer, BufferView, Accessors } from "./loader.type";
-export { WebGLContext, WebGLContextType, WebGLAttributes } from "./webgl.type";
-export { RendererType, RendererTarget } from "./renderer.type";
+export { WebGLContext, WebGLTarget, WebGLContextType, WebGLAttributes, WebGLRendererParams } from "./webgl.type";

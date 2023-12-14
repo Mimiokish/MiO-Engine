@@ -1,4 +1,4 @@
-class Renderer {
+class WebGL2Parameters {
     #type;
     #target;
     get type() {
@@ -133,53 +133,17 @@ class Canvas extends DocumentObjectModel {
     }
 }
 
-class WebGL2Renderer extends Renderer {
-    get canvas() {
-        return this.target;
-    }
-    set canvas(canvas) {
-        throw new Error("MiO Engine | WebGL2Renderer - canvas cannot be set");
-    }
-    get context() {
-        return this.canvas.getContext("webgl2");
-    }
-    set context(context) {
-        throw new Error("MiO Engine | WebGL2Renderer - gl cannot be set");
-    }
-    constructor(parentId) {
+class WebGL2Renderer extends WebGL2Parameters {
+    #program;
+    constructor(params) {
         super();
         // initial methods
-        this.#initialParams();
-        this.#initialCanvas(parentId);
+        const _params = params;
+        this.#initialParams(_params);
     }
-    #initialParams() {
+    #initialParams(params) {
         this.type = "WebGL2";
         this.target = new Canvas();
-    }
-    #initialCanvas(parentId) {
-        const _parentId = parentId;
-        if (!_parentId) {
-            this.canvas.appendToBody()
-                .then((res) => {
-                if (res) {
-                    const parentNode = this.canvas.node.parentElement;
-                    this.canvas.addEventListener("resize", () => {
-                        this.canvas.updateSize(parentNode.clientWidth, parentNode.clientHeight);
-                    });
-                }
-            });
-        }
-        else {
-            this.canvas.appendToElement(_parentId)
-                .then((res) => {
-                if (res) {
-                    const parentNode = this.canvas.node.parentElement;
-                    this.canvas.addEventListener("resize", () => {
-                        this.canvas.updateSize(parentNode.clientWidth, parentNode.clientHeight);
-                    });
-                }
-            });
-        }
     }
 }
 
