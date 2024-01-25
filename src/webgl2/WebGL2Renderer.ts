@@ -8,8 +8,9 @@ export class WebGL2Renderer extends WebGL2Parameters {
     constructor(params: WebGLRendererParams) {
         super();
 
-        // initial methods
         const _params: WebGLRendererParams = params;
+
+        // initial methods - parameters
         this.#initialParams(_params);
     }
 

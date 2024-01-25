@@ -1,21 +1,10 @@
-class WebGL2Parameters {
-    #type;
-    #target;
-    get type() {
-        return this.#type;
-    }
-    set type(type) {
-        this.#type = type;
-    }
-    get target() {
-        return this.#target;
-    }
-    set target(target) {
-        this.#target = target;
-    }
+class Renderer {
+    #renderPass;
     constructor() {
-        this.type = "";
-        this.target = null;
+        this.#initialParams();
+    }
+    #initialParams() {
+        this.#renderPass = new RenderPass();
     }
 }
 
@@ -133,12 +122,54 @@ class Canvas extends DocumentObjectModel {
     }
 }
 
+class RenderPass {
+    #gl;
+    #node;
+    #canvas;
+    constructor() {
+        this.#initialParams();
+    }
+    #initialParams() {
+        this.#node = document.getElementById("MiO-Engine");
+        if (!this.#node) {
+            console.error("MiO-Engine | a node with ID(MiO-Engine) needs to be create before render");
+            return false;
+        }
+        else {
+            this.#canvas = new Canvas();
+            this.#node.appendChild(this.#canvas.node);
+            this.#gl = this.#canvas.getContext("WebGL2");
+        }
+    }
+}
+
+class WebGL2Parameters {
+    #type;
+    #target;
+    get type() {
+        return this.#type;
+    }
+    set type(type) {
+        this.#type = type;
+    }
+    get target() {
+        return this.#target;
+    }
+    set target(target) {
+        this.#target = target;
+    }
+    constructor() {
+        this.type = "";
+        this.target = null;
+    }
+}
+
 class WebGL2Renderer extends WebGL2Parameters {
     #program;
     constructor(params) {
         super();
-        // initial methods
         const _params = params;
+        // initial methods - parameters
         this.#initialParams(_params);
     }
     #initialParams(params) {
@@ -451,5 +482,5 @@ class Object3D extends EventDispatcher {
 
 console.log("MiO-Engine | Enjoy Coding!");
 
-export { GLTFLoader, Object3D, WebGL2Renderer };
+export { GLTFLoader, Object3D, Renderer, WebGL2Renderer };
 //# sourceMappingURL=mio-engine.js.map
