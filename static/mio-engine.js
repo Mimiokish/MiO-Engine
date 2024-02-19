@@ -4,7 +4,9 @@ class Renderer {
         this.#initialParams();
     }
     #initialParams() {
-        this.#renderPass = new RenderPass();
+        this.#renderPass = new RendererPass({
+            contextType: "WebGPU"
+        });
     }
 }
 
@@ -122,23 +124,79 @@ class Canvas extends DocumentObjectModel {
     }
 }
 
-class RenderPass {
-    #gl;
-    #node;
-    #canvas;
-    constructor() {
-        this.#initialParams();
+class WebGPURenderPass {
+    #webGpuAdapter;
+    #webGpuDevice;
+    #webGpuContext;
+    constructor(params) {
+        this.#initialParams(params);
     }
-    #initialParams() {
-        this.#node = document.getElementById("MiO-Engine");
-        if (!this.#node) {
-            console.error("MiO-Engine | a node with ID(MiO-Engine) needs to be create before render");
+    async #initialParams(params) {
+        const _context = params.context;
+        if (!navigator.gpu) {
+            console.error("MiO-Engine | WebGPU is not supported");
             return false;
         }
-        else {
-            this.#canvas = new Canvas();
-            this.#node.appendChild(this.#canvas.node);
-            this.#gl = this.#canvas.getContext("WebGL2");
+        this.#webGpuAdapter = await navigator.gpu.requestAdapter();
+        if (!this.#webGpuAdapter) {
+            console.error("MiO-Engine | WebGPUAdapter initial failed");
+            return false;
+        }
+        this.#webGpuDevice = await this.#webGpuAdapter.requestDevice();
+        if (!this.#webGpuAdapter) {
+            console.error("MiO-Engine | a browser that supports WebGPU is needed");
+            return false;
+        }
+        this.#webGpuContext = _context;
+        this.#webGpuContext.configure({
+            device: this.#webGpuDevice,
+            format: navigator.gpu.getPreferredCanvasFormat()
+        });
+        console.log(3434, navigator.gpu.getPreferredCanvasFormat());
+        return true;
+    }
+}
+
+class RendererPass {
+    #self;
+    #node;
+    #canvas;
+    get node() {
+        return this.#node;
+    }
+    set node(value) {
+        throw Error("MiO-Engine | node is readonly");
+    }
+    get canvas() {
+        return this.#canvas;
+    }
+    set canvas(value) {
+        throw Error("MiO-Engine | canvas is readonly");
+    }
+    constructor(params) {
+        this.#initialParams(params);
+    }
+    #initialParams(params) {
+        const _contextType = params.contextType ? params.contextType : "WebGPU";
+        this.#node = document.getElementById("MiO-Engine");
+        if (!this.#node) {
+            console.error("MiO-Engine | a node with the ID(MiO-Engine) needs to be create before render");
+            return false;
+        }
+        this.#canvas = new Canvas();
+        this.#node.appendChild(this.#canvas.node);
+        // set renderPass
+        switch (_contextType) {
+            case "WebGPU":
+            case "webgpu":
+                this.#self = new WebGPURenderPass({
+                    context: this.#canvas.getContext("webgpu")
+                });
+                break;
+            default:
+                this.#self = new WebGPURenderPass({
+                    context: this.#canvas.getContext("webgpu")
+                });
         }
     }
 }

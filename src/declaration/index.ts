@@ -3,4 +3,8 @@ export { Event, EventType, EventMap } from "./event-dispatcher.type";
 export { Message, MessageType, MessageMap } from "./message.type";
 export { HTMLTagName, HTMLNode } from "./dom.type";
 export { LoaderStatus, UrlModifier, GLTFConfig, Buffer, BufferView, Accessors } from "./loader.type";
+export { CanvasNode, CanvasContextType, CanvasContext } from "./canvas.type";
+export { RendererPassParams, RendererPasses } from "./renderer.type";
 export { WebGLContext, WebGLTarget, WebGLContextType, WebGLAttributes, WebGLRendererParams } from "./webgl.type";
+export { WebGPUParams, WebGPUContext, WebGPUAdapter, WebGPUDevice } from "./webgpu.type";
+export { ShaderParams } from "./shader.type";

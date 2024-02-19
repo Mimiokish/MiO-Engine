@@ -1,13 +1,15 @@
-import { RenderPass } from "../renderer";
+import { RendererPass } from "../renderer";
 
 export class Renderer {
-    #renderPass: RenderPass;
+    #renderPass: RendererPass;
 
     constructor() {
         this.#initialParams();
     }
 
     #initialParams(): void {
-        this.#renderPass = new RenderPass();
+        this.#renderPass = new RendererPass({
+            contextType: "WebGPU"
+        });
     }
 }

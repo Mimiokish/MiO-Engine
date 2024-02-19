@@ -1,6 +1,6 @@
 import { WebGLRendererParams } from "../declaration/";
 import { WebGL2Parameters } from "./WebGL2Parameters";
-import { Canvas } from "../document-object-model/Canvas";
+import { Canvas } from "../document-object-model";
 
 export class WebGL2Renderer extends WebGL2Parameters {
     #program: WebGLProgram;

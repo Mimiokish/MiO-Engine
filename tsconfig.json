@@ -9,7 +9,10 @@
         "noImplicitAny": true,
         "esModuleInterop": true,
         "declaration": true,
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "types": [
+            "@webgpu/types"
+        ]
     },
     "include": [
         "src/**/*.ts"

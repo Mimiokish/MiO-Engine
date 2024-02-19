@@ -1,29 +1,30 @@
+import { ShaderParams, CanvasContext } from "../declaration";
+
 export class Shaders {
     #key: string;
     #type: number;
     #source: string;
-    #gl: WebGL2RenderingContext;
-    #shader: WebGLShader;
+    #context: CanvasContext;
 
-    constructor(key: string, type: number, source: string, gl: WebGL2RenderingContext) {
-        const _key: string = key;
-        const _type: number = type;
-        const _source: string = source;
-        const _gl: WebGL2RenderingContext = gl;
+    constructor(params: ShaderParams) {
+        const _key: string = params.key;
+        const _type: number = params.type;
+        const _source: string = params.source;
+        const _context: CanvasContext = params.context;
 
-        this.#initialParams(_key, _type, _source, _gl);
+        this.#initialParams(_key, _type, _source, _context);
         this.#initialShader();
     }
 
-    #initialParams(key: string, type: number, source: string, gl: WebGL2RenderingContext): void {
+    #initialParams(key: string, type: number, source: string, context: CanvasContext): void {
         this.#key = key;
         this.#type = type;
         this.#source = source;
-        this.#gl = gl;
+        this.#context = context;
     }
 
     #initialShader(): void {
-        if (!this.#gl) {
+        if (!this.#context) {
             throw new Error("MiO Engine | WebGL2RenderingContext is undefined");
         }
 
@@ -35,24 +36,20 @@ export class Shaders {
             throw new Error("MiO Engine | source is undefined");
         }
 
-        const shader: WebGLShader | null = this.#gl.createShader(this.#type);
-        if (!shader) {
-            throw new Error("MiO Engine | shader is null");
-        } else {
-            this.#gl.shaderSource(shader, this.#source);
-            this.#gl.compileShader(shader);
-
-            const error: string | null = this.#gl.getShaderInfoLog(shader);
-
-            if (error) {
-                throw new Error("MiO Engine | shader compile error: " + error);
-            } else {
-                this.#shader = shader;
-            }
-        }
-    }
-
-    public getShader(): WebGLShader {
-        return this.#shader;
+        // const shader: WebGLShader | null = this.#context.createShader(this.#type);
+        // if (!shader) {
+        //     throw new Error("MiO Engine | shader is null");
+        // } else {
+        //     this.#gl.shaderSource(shader, this.#source);
+        //     this.#gl.compileShader(shader);
+        //
+        //     const error: string | null = this.#context.getShaderInfoLog(shader);
+        //
+        //     if (error) {
+        //         throw new Error("MiO Engine | shader compile error: " + error);
+        //     } else {
+        //         this.#shader = shader;
+        //     }
+        // }
     }
 }

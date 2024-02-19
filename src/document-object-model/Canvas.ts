@@ -1,18 +1,17 @@
-import { WebGLContext, WebGLContextType } from "../declaration";
-import { EnumArray, EnumFunction } from "../declaration";
+import { CanvasNode, CanvasContextType, CanvasContext, EnumArray, EnumFunction } from "../declaration";
 import { DocumentObjectModel } from "./DocumentObjectModel";
 
 export class Canvas extends DocumentObjectModel {
-    public get node(): HTMLCanvasElement {
-        return super.node as HTMLCanvasElement;
+    public get node(): CanvasNode {
+        return super.node as CanvasNode;
     }
 
     constructor() {
         super("canvas");
     }
 
-    public getContext(type: WebGLContextType): WebGLContext  {
-        return this.node.getContext(type) as WebGLContext;
+    public getContext(type: CanvasContextType): CanvasContext {
+        return this.node.getContext(type) as CanvasContext;
     }
 
     public updateSize(width: number, height: number): void {

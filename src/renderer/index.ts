@@ -1,2 +1,2 @@
 export { Renderer } from "./Renderer";
-export { RenderPass } from "./RenderPass";
+export { RendererPass } from "./RendererPass";
