@@ -6,5 +6,6 @@ export { LoaderStatus, UrlModifier, GLTFConfig, Buffer, BufferView, Accessors } 
 export { CanvasNode, CanvasContextType, CanvasContext } from "./canvas.type";
 export { RendererPassParams, RendererPasses } from "./renderer.type";
 export { WebGLContext, WebGLTarget, WebGLContextType, WebGLAttributes, WebGLRendererParams } from "./webgl.type";
-export { WebGPUParams, WebGPUContext, WebGPUAdapter, WebGPUDevice } from "./webgpu.type";
+export { WebGPU, WebGPUContext, WebGPUAdapter, WebGPUDevice } from "./webgpu.type";
+export { WebGPURenderPassParameters, WebGPURenderPipelineParameters } from "./webgpu.params.type";
 export { ShaderParams } from "./shader.type";
