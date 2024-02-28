@@ -36,58 +36,15 @@ export class WebGPURenderPass {
         }
 
         this.#webGpuContext = _context as WebGPUContext;
-        this.#webGpuContext.configure({
-            device: this.#webGpuDevice,
-            format: navigator.gpu.getPreferredCanvasFormat()
-        });
-
-        // hardcoded test
-        const module = this.#webGpuDevice.createShaderModule({
-            label: "our hardcoded red triangle shaders",
-            code: `
-                    @group(0) @binding(0) var<storage, read_write> data: array<f32>;
- 
-                    @compute @workgroup_size(1) fn computeSomething(@builtin(global_invocation_id) id: vec3u) {
-                        let i = id.x;
-                        data[i] = data[i] * 2.0;
-                    }
-                `,
-        });
-        const pipeline = this.#webGpuDevice.createRenderPipeline({
-            label: "our hardcoded red triangle pipeline",
-            layout: "auto",
-            vertex: {
-                module,
-                entryPoint: "vs"
-            },
-            fragment: {
-                module,
-                entryPoint: "fs",
-                targets: [{ format: navigator.gpu.getPreferredCanvasFormat() }]
-            }
-        });
-        const renderPassDescriptor = {
-            label: "our basic canvas renderPass",
-            colorAttachments: [
-                {
-                    // view: <- to be filled out when we render
-                    view: this.#webGpuContext.getCurrentTexture().createView(),
-                    clearValue: [0.4, 0.4, 0.4, 1],
-                    loadOp: "clear",
-                    storeOp: "store"
-                }
-            ]
-        };
-
-        renderPassDescriptor.colorAttachments[0].view = this.#webGpuContext.getCurrentTexture().createView();
-        const encoder = this.#webGpuDevice.createCommandEncoder({ label: "our encoder" });
-        const pass = encoder.beginRenderPass(renderPassDescriptor);
-        pass.setPipeline(pipeline);
-        pass.draw(3);
-        pass.end();
-
-        const commandBuffer = encoder.finish();
-        this.#webGpuDevice.queue.submit([commandBuffer]);
+        try {
+            this.#webGpuContext.configure({
+                device: this.#webGpuDevice,
+                format: navigator.gpu.getPreferredCanvasFormat()
+            });
+        } catch (error) {
+            console.error("MiO-Engine | context configure error: " + error);
+            return false;
+        }
 
         return true;
     }
