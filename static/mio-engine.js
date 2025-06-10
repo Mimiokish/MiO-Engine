@@ -164,10 +164,16 @@ class Renderer {
                 this.#canvas = new WebGPUCanvas();
         }
         this.#node.appendChild(this.#canvas.self);
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        this.resize(windowWidth, windowHeight);
+        window.addEventListener("resize", () => this.resize());
         return true;
     }
     resize(width, height) {
-        this.#canvas.resize(width, height);
+        const _width = window.innerWidth || width;
+        const _height = window.innerHeight || height;
+        this.#canvas.resize(_width, _height);
     }
 }
 

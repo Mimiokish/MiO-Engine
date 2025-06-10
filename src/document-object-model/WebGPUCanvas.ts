@@ -19,8 +19,8 @@ export class WebGPUCanvas extends HTML {
         super("canvas");
     }
 
-    public resize(width: number, height: number): void {
-        this.self.width = width;
-        this.self.height = height;
+    public resize(width?: number, height?: number): void {
+        this.self.width =  window.innerWidth || width as number;
+        this.self.height =  window.innerHeight || height as number;
     }
 }

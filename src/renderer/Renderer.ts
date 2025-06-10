@@ -51,10 +51,18 @@ export class Renderer {
 
         this.#node.appendChild(this.#canvas.self);
 
+        const windowWidth: number | undefined = window.innerWidth;
+        const windowHeight: number | undefined = window.innerHeight;
+        this.resize(windowWidth, windowHeight);
+        window.addEventListener("resize", () => this.resize());
+
         return true;
     }
 
-    public resize(width: number, height: number): void {
-        this.#canvas.resize(width, height);
+    public resize(width?: number, height?: number): void {
+        const _width: number | undefined = window.innerWidth || width;
+        const _height: number | undefined = window.innerHeight || height;
+
+        this.#canvas.resize(_width, _height);
     }
 }
